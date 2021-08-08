@@ -12,4 +12,5 @@
 
     <string name="weather_info">Cloud</string>
     <string name="City">Bandung</string>
+    <string name="error_message">Error, Try Again!</string>
 </resources>
