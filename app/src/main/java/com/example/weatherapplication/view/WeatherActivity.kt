@@ -111,6 +111,17 @@ class WeatherActivity : AppCompatActivity() {
             startLocationUpdates()
         }
 
+        img_search_city.setOnClickListener {
+            startActivityForResult(Intent(this, MapsActivity::class.java).apply {
+            }, REQUEST_CODE)
+//            val cityName = edt_city_name.text.toString()
+//            SET.putString("cityName", cityName)
+//            SET.apply()
+//            viewmodel.refreshData(cityName)
+//            getLiveData()
+//            Log.i(TAG, "onCreate: " + cityName)
+        }
+
         requestPermissionOnlyOnce(permissionsRequestCodeLocation, locationPermissions)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
