@@ -1,38 +1,53 @@
 package com.example.weatherapplication.view
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
-import android.os.AsyncTask
-import android.os.Bundle
+import android.location.*
+import android.os.*
+import android.provider.Settings
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import android.view.View
-import android.widget.ProgressBar
-import android.widget.RelativeLayout
-import android.widget.TextView
+import android.view.inputmethod.EditorInfo
+import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.location.LocationManagerCompat
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
+import com.bumptech.glide.Glide
 import com.example.weatherapplication.R
+import com.example.weatherapplication.util.ManagePermissions
 import com.example.weatherapplication.viewmodel.MainViewModel
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.weather_activity2.*
-import java.net.URL
+import java.util.*
+
 
 class WeatherActivity : AppCompatActivity() {
 
     private lateinit var viewmodel: MainViewModel
-
+    private val TAG = "WeatherActivity"
     private lateinit var GET: SharedPreferences
     private lateinit var SET: SharedPreferences.Editor
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var fusedLocationClient: FusedLocationProviderClient? = null
+    private var locationCallback: LocationCallback? = null
+    private var currentLocation: Location? = null
+    private val REQUEST_CODE = 123
+    private lateinit var managePermissions: ManagePermissions
+
+    var city = ""
+    var lat = 0.toDouble()
+    var long = 0.toDouble()
+    private val permissionsRequestCodeLocation = 500
+
+    private val locationPermissions = listOf(
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,11 +56,10 @@ class WeatherActivity : AppCompatActivity() {
         GET = getSharedPreferences(packageName, MODE_PRIVATE)
         SET = GET.edit()
 
-//        viewmodel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        viewmodel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
-        var cName = GET.getString("cityName", "bingöl")?.toLowerCase()
-        edt_city_name.setText(cName)
-        viewmodel.refreshData(cName!!)
+        var cName = GET.getString("cityName", "")?.toLowerCase()
+
 
         getLiveData()
 
@@ -54,114 +68,249 @@ class WeatherActivity : AppCompatActivity() {
             tv_error.visibility = View.GONE
             pb_loading.visibility = View.GONE
 
-            var cityName = GET.getString("cityName", cName)?.toLowerCase()
-            edt_city_name.setText(cityName)
-            viewmodel.refreshData(cityName!!)
             swipe_refresh_layout.isRefreshing = false
+
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+            locationCallback = object : LocationCallback() {
+                override fun onLocationResult(locationResult: LocationResult?) {
+                    locationResult ?: return
+                    for (location in locationResult.locations) {
+                        Log.d("GetAddressIntentService", "locationResult: $location")
+                        println("location latituded : ${location.latitude}.")
+                        println("location longitude : ${location.longitude}.")
+                    }
+
+                    currentLocation = locationResult.locations[0]
+                    println("location : ${locationResult.locations[0]}")
+
+                    val geocoder = Geocoder(this@WeatherActivity, Locale.getDefault())
+                    var addressesRefresh: List<Address>? = null
+                    addressesRefresh = geocoder.getFromLocation(
+                        currentLocation?.latitude!!,
+                        currentLocation?.longitude!!,
+                        1
+                    )
+                    city = addressesRefresh[0].subAdminArea.toLowerCase().replace("kota", "").replace(
+                        "kabupaten",
+                        ""
+                    )
+                    lat = addressesRefresh[0].latitude
+                    long = addressesRefresh[0].longitude
+                    SET.putString("ADDRESS_RESULT_LAT", lat.toString())
+                    SET.putString("ADDRESS_RESULT_LONG", long.toString())
+                    SET.apply()
+                    println("city : $city")
+                    edt_city_name.setText(city)
+                    viewmodel.refreshData(cName!!)
+                    val cityName = edt_city_name.text.toString()
+                    SET.putString("cityName", cityName)
+                    SET.apply()
+                    viewmodel.refreshData(cityName)
+                }
+            }
+            startLocationUpdates()
         }
 
-        img_search_city.setOnClickListener {
-            val cityName = edt_city_name.text.toString()
-            SET.putString("cityName", cityName)
-            SET.apply()
-            viewmodel.refreshData(cityName)
-            getLiveData()
-//            Log.i(TAG, "onCreate: " + cityName)
+        requestPermissionOnlyOnce(permissionsRequestCodeLocation, locationPermissions)
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations) {
+                    Log.d("GetAddressIntentService", "locationResult: $location")
+                    println("location latituded : ${location.latitude}.")
+                    println("location longitude : ${location.longitude}.")
+                }
+                currentLocation = locationResult.locations[0]
+                println("location : ${locationResult.locations[0]}")
+
+                val geocoder = Geocoder(this@WeatherActivity, Locale.getDefault())
+                var addresses: List<Address>? = null
+                addresses = geocoder.getFromLocation(
+                    currentLocation?.latitude!!,
+                    currentLocation?.longitude!!,
+                    1
+                )
+                println("addresses : ${addresses[0].subAdminArea}")
+                println("addresses : ${addresses[0].latitude}")
+                println("addresses : ${addresses[0].longitude}")
+                city = addresses[0].subAdminArea.toLowerCase().replace("kota", "").replace(
+                    "kabupaten",
+                    ""
+                )
+                lat = addresses[0].latitude
+                long = addresses[0].longitude
+                SET.putString("ADDRESS_RESULT_LAT", lat.toString())
+                SET.putString("ADDRESS_RESULT_LONG", long.toString())
+                println("city : $city")
+                edt_city_name.setText(city)
+                val cityName = edt_city_name.text.toString()
+                SET.putString("cityName", cityName)
+                SET.apply()
+                viewmodel.refreshData(cName!!)
+            }
         }
 
+        edt_city_name.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                //do here your stuff f
+                val cityName = edt_city_name.text.toString()
+                SET.putString("cityName", cityName)
+                SET.apply()
+                viewmodel.refreshData(cityName)
+                true
+            } else false
+        })
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE) {
+            data.let {
+                var cName = GET.getString("cityName", "")?.toLowerCase()
+                val lat = (it?.getStringExtra("ADDRESS_RESULT_LAT") ?: "").toDouble()
+                val long = (it?.getStringExtra("ADDRESS_RESULT_LONG") ?: "").toDouble()
+
+                val geocoder = Geocoder(this@WeatherActivity, Locale.getDefault())
+                var addresses: List<Address>? = null
+                addresses = geocoder.getFromLocation(
+                    lat,
+                    long,
+                    1
+                )
+
+                city = addresses[0].subAdminArea.toLowerCase().replace("kota", "").replace(
+                    "kabupaten",
+                    ""
+                )
+                println("city response $city")
+                edt_city_name.setText(city)
+                val cityName = edt_city_name.text.toString()
+                SET.putString("cityName", cityName)
+                SET.apply()
+                viewmodel.refreshData(cityName)
+            }
+        }
     }
 
     private fun getLiveData() {
 
         viewmodel.weather_data.observe(this, Observer { data ->
             data?.let {
-//                ll_data.visibility = View.VISIBLE
-//
-//                tv_city_code.text = data.sys.country.toString()
-//                tv_city_name.text = data.name.toString()
-//
-//                Glide.with(this)
-//                    .load("https://openweathermap.org/img/wn/" + data.weather.get(0).icon + "@2x.png")
-//                    .into(img_weather_pictures)
-//
-//                tv_degree.text = data.main.temp.toString() + "°C"
-//
-//                tv_humidity.text = data.main.humidity.toString() + "%"
-//                tv_wind_speed.text = data.wind.speed.toString()
-//                tv_lat.text = data.coord.lat.toString()
-//                tv_lon.text = data.coord.lon.toString()
+
+                ll_data.visibility = View.VISIBLE
+
+                tv_city_code.text = data.sys.country.toString()
+                tv_city_name.text = data.name.toString()
+
+                Glide.with(this)
+                    .load("https://openweathermap.org/img/wn/" + data.weather.get(0).icon + "@2x.png")
+                    .into(img_weather_pictures)
+
+                tv_degree.text = data.main.temp.toString() + "°C"
+
+                tv_humidity.text = data.main.humidity.toString() + "%"
+                tv_wind_speed.text = data.wind.speed.toString()
+                tv_lat.text = data.coord.lat.toString()
+                tv_lon.text = data.coord.lon.toString()
 
             }
         })
 
         viewmodel.weather_error.observe(this, Observer { error ->
             error?.let {
-//                if (error) {
-//                    tv_error.visibility = View.VISIBLE
-//                    pb_loading.visibility = View.GONE
-//                    ll_data.visibility = View.GONE
-//                } else {
-//                    tv_error.visibility = View.GONE
-//                }
+                if (error) {
+                    tv_error.visibility = View.VISIBLE
+                    pb_loading.visibility = View.GONE
+                    ll_data.visibility = View.GONE
+                } else {
+                    tv_error.visibility = View.GONE
+                }
             }
         })
 
         viewmodel.weather_loading.observe(this, Observer { loading ->
             loading?.let {
-//                if (loading) {
-//                    pb_loading.visibility = View.VISIBLE
-//                    tv_error.visibility = View.GONE
-//                    ll_data.visibility = View.GONE
-//                } else {
-//                    pb_loading.visibility = View.GONE
-//                }
+                if (loading) {
+                    pb_loading.visibility = View.VISIBLE
+                    tv_error.visibility = View.GONE
+                    ll_data.visibility = View.GONE
+                } else {
+                    pb_loading.visibility = View.GONE
+                }
             }
         })
 
     }
 
-    fun getLocation() {
+    @SuppressLint("MissingPermission")
+    private fun startLocationUpdates() {
+        val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (LocationManagerCompat.isLocationEnabled(locationManager)) {
+            val locationRequest = LocationRequest()
+//            val locationGPS: Location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+//            println("locationGPS : $locationGPS")
+//            println("locationGPS longitude : ${locationGPS.longitude}")
+//            println("locationGPS latitude : ${locationGPS.latitude}")
+            locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            locationRequest.interval = 0
+            locationRequest.fastestInterval = 0
+            locationRequest.numUpdates = 1
 
-        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager?
-
-        val locationListener = object : LocationListener{
-            override fun onLocationChanged(location: Location) {
-                var latitute = location.latitude
-                var longitute = location.longitude
-
-                Log.i("test", "Latitute: $latitute ; Longitute: $longitute")
-
+            fusedLocationClient?.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        } else {
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Need location service")
+            builder.setMessage("Location service are required to do the task.")
+            builder.setPositiveButton("Go To Setting") { dialog, which ->
+                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
-
-            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-            }
-
-            override fun onProviderEnabled(provider: String) {
-            }
-
-            override fun onProviderDisabled(provider: String) {
-            }
-
+            builder.setNeutralButton("Cancel", null)
+            builder.create()
+            builder.show()
         }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                PERMISSION_REQUEST_ACCESS_FINE_LOCATION)
-            return
-        }
-//        locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    // Receive the permissions request result
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST_ACCESS_FINE_LOCATION) {
-            when (grantResults[0]) {
-                PackageManager.PERMISSION_GRANTED -> getLocation()
-                PackageManager.PERMISSION_DENIED ->
-                    Toast.makeText(applicationContext,"", Toast.LENGTH_LONG)
+        when (requestCode) {
+            permissionsRequestCodeLocation -> {
+                val isPermissionsGranted = managePermissions.processPermissionsResult(
+                    requestCode,
+                    permissions,
+                    grantResults
+                )
+                if (isPermissionsGranted) {
+                    startLocationUpdates()
+                } else {
+                    Toast.makeText(applicationContext, "Permissions denied.", Toast.LENGTH_LONG)
+                }
+                return
+            }
+        }
+    }
+
+    fun requestPermissionOnlyOnce(codePermission: Int, list: List<String>) {
+        // Initialize a new instance of ManagePermissions class
+        managePermissions = ManagePermissions(this, list, codePermission)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            managePermissions.checkPermissionsOnlyOnce()
+        } else {
+            when (codePermission) {
+                permissionsRequestCodeLocation -> {
+                    startLocationUpdates()
+                }
             }
         }
     }

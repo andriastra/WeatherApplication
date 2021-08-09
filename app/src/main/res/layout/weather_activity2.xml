@@ -9,207 +9,218 @@
     android:background="@drawable/bg_weather"
     tools:context=".view.WeatherActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp">
-
-        <TextView
-            android:id="@+id/tv_error"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/error_message"
-            android:padding="15dp"
-            android:background="#4DFFFFFF"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ProgressBar
-            android:id="@+id/pb_loading"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <LinearLayout
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:padding="16dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tv_error"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="@string/error_message"
+                android:padding="15dp"
                 android:background="#4DFFFFFF"
-                android:padding="5dp"
-                android:orientation="horizontal">
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="#55FFFFFF"
-                    app:endIconMode="clear_text">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/edt_city_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="text"
-                        android:maxLines="1"
-                        android:hint="City Name"
-                        android:lines="1" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <ImageView
-                    android:id="@+id/img_search_city"
-                    android:layout_width="50dp"
-                    android:layout_height="match_parent"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_wind" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/ll_data"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
+            <ProgressBar
+                android:id="@+id/pb_loading"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toTopOf="parent" />
 
-                <TextView
-                    android:id="@+id/tv_degree"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:textSize="65sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="#4DFFFFFF"
-                    android:orientation="horizontal"
-                    android:padding="15dp">
+                    android:padding="5dp"
+                    android:orientation="horizontal">
 
-                    <LinearLayout
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:background="#55FFFFFF"
+                        app:endIconMode="clear_text">
 
-                        <TextView
-                            android:id="@+id/tv_city_code"
-                            android:layout_width="wrap_content"
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/edt_city_name"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="CITY CODE"
-                            android:textSize="23sp" />
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:hint="City Name"
+                            android:lines="1" />
 
-                        <TextView
-                            android:id="@+id/tv_city_name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="CITY NAME"
-                            android:textSize="17sp" />
-
-                    </LinearLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <ImageView
-                        android:id="@+id/img_weather_pictures"
-                        android:layout_width="100dp"
+                        android:id="@+id/img_search_city"
+                        android:layout_width="50dp"
                         android:layout_height="match_parent"
-                        android:src="@drawable/ic_humidity" />
+                        android:padding="10dp"
+                        android:src="@drawable/ic_map_marker" />
 
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/ll_data"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="15dp"
-                    android:background="#4DFFFFFF"
-                    android:orientation="horizontal"
-                    android:padding="15dp">
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/tv_degree"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textSize="65sp" />
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:background="#4DFFFFFF"
+                        android:orientation="horizontal"
+                        android:padding="15dp">
 
-                        <!--Nem-->
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="Humidity" />
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
-                        <!--Rüzgar Hızı-->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Wind Speed" />
+                            <TextView
+                                android:id="@+id/tv_city_code"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="CITY CODE"
+                                android:textSize="23sp" />
 
-                        <!--Enlem-->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Latitude" />
+                            <TextView
+                                android:id="@+id/tv_city_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="CITY NAME"
+                                android:textSize="17sp" />
 
-                        <!--Boylam-->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Longitude" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/img_weather_pictures"
+                            android:layout_width="100dp"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_humidity" />
 
                     </LinearLayout>
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:id="@+id/WeatherStatus"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="15dp"
-                        android:orientation="vertical">
+                        android:layout_marginTop="15dp"
+                        android:background="#4DFFFFFF"
+                        android:orientation="horizontal"
+                        android:padding="15dp">
 
-                        <TextView
-                            android:id="@+id/tv_humidity"
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text=":bilgi1" />
+                            android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/tv_wind_speed"
+                            <!--Nem-->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Humidity" />
+
+                            <!--Rüzgar Hızı-->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Wind Speed" />
+
+                            <!--Enlem-->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Latitude" />
+
+                            <!--Boylam-->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Longitude" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text=":bilgi2" />
+                            android:layout_marginLeft="15dp"
+                            android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/tv_lat"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text=":bilgi3" />
+                            <TextView
+                                android:id="@+id/tv_humidity"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=":bilgi1" />
 
-                        <TextView
-                            android:id="@+id/tv_lon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text=":bilgi4" />
+                            <TextView
+                                android:id="@+id/tv_wind_speed"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=":test" />
+
+                            <TextView
+                                android:id="@+id/tv_lat"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=":test" />
+
+                            <TextView
+                                android:id="@+id/tv_lon"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=":test" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
                 </LinearLayout>
 
             </LinearLayout>
-
-        </LinearLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        </FrameLayout>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/map"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/fab_margin"
+            app:srcCompat="@android:drawable/ic_dialog_email"
+            tools:ignore="MissingConstraints" />
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
