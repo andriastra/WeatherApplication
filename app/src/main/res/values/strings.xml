@@ -12,7 +12,7 @@
 
     <string name="weather_info">Cloud</string>
     <string name="City">Bandung</string>
-    <string name="error_message">Error, Try Again!</string>
+    <string name="error_message">Sorry have problem, Swipe to Refresh..</string>
 
     <string name="title_activity_maps">Maps</string>
     <string name="normal_map">Normal Map</string>

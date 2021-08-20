@@ -53,6 +53,7 @@ class WeatherActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.weather_activity2)
 
+
         GET = getSharedPreferences(packageName, MODE_PRIVATE)
         SET = GET.edit()
 
@@ -60,17 +61,22 @@ class WeatherActivity : AppCompatActivity() {
 
         var cName = GET.getString("cityName", "")?.toLowerCase()
 
-
         getLiveData()
+
+
+        ll_data.visibility = View.GONE
+        tv_error.visibility = View.GONE
+        pb_loading.visibility = View.GONE
 
         swipe_refresh_layout.setOnRefreshListener {
             ll_data.visibility = View.GONE
             tv_error.visibility = View.GONE
-            pb_loading.visibility = View.GONE
+            pb_loading.visibility = View.VISIBLE
 
             swipe_refresh_layout.isRefreshing = false
 
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
             locationCallback = object : LocationCallback() {
                 override fun onLocationResult(locationResult: LocationResult?) {
                     locationResult ?: return
@@ -86,13 +92,13 @@ class WeatherActivity : AppCompatActivity() {
                     val geocoder = Geocoder(this@WeatherActivity, Locale.getDefault())
                     var addressesRefresh: List<Address>? = null
                     addressesRefresh = geocoder.getFromLocation(
-                        currentLocation?.latitude!!,
-                        currentLocation?.longitude!!,
-                        1
+                            currentLocation?.latitude!!,
+                            currentLocation?.longitude!!,
+                            1
                     )
                     city = addressesRefresh[0].subAdminArea.toLowerCase().replace("kota", "").replace(
-                        "kabupaten",
-                        ""
+                            "kabupaten",
+                            ""
                     )
                     lat = addressesRefresh[0].latitude
                     long = addressesRefresh[0].longitude
@@ -101,7 +107,7 @@ class WeatherActivity : AppCompatActivity() {
                     SET.apply()
                     println("city : $city")
                     edt_city_name.setText(city)
-                    viewmodel.refreshData(cName!!)
+//                    viewmodel.refreshData(cName!!)
                     val cityName = edt_city_name.text.toString()
                     SET.putString("cityName", cityName)
                     SET.apply()
@@ -122,9 +128,21 @@ class WeatherActivity : AppCompatActivity() {
 //            Log.i(TAG, "onCreate: " + cityName)
         }
 
+        edt_city_name.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                //do here your stuff f
+                val cityName = edt_city_name.text.toString()
+                SET.putString("cityName", cityName)
+                SET.apply()
+                viewmodel.refreshData(cityName)
+                true
+            } else false
+        })
+
         requestPermissionOnlyOnce(permissionsRequestCodeLocation, locationPermissions)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult ?: return
@@ -139,16 +157,16 @@ class WeatherActivity : AppCompatActivity() {
                 val geocoder = Geocoder(this@WeatherActivity, Locale.getDefault())
                 var addresses: List<Address>? = null
                 addresses = geocoder.getFromLocation(
-                    currentLocation?.latitude!!,
-                    currentLocation?.longitude!!,
-                    1
+                        currentLocation?.latitude!!,
+                        currentLocation?.longitude!!,
+                        1
                 )
                 println("addresses : ${addresses[0].subAdminArea}")
                 println("addresses : ${addresses[0].latitude}")
                 println("addresses : ${addresses[0].longitude}")
                 city = addresses[0].subAdminArea.toLowerCase().replace("kota", "").replace(
-                    "kabupaten",
-                    ""
+                        "kabupaten",
+                        ""
                 )
                 lat = addresses[0].latitude
                 long = addresses[0].longitude
@@ -162,17 +180,6 @@ class WeatherActivity : AppCompatActivity() {
                 viewmodel.refreshData(cName!!)
             }
         }
-
-        edt_city_name.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                //do here your stuff f
-                val cityName = edt_city_name.text.toString()
-                SET.putString("cityName", cityName)
-                SET.apply()
-                viewmodel.refreshData(cityName)
-                true
-            } else false
-        })
     }
 
 
@@ -275,6 +282,7 @@ class WeatherActivity : AppCompatActivity() {
                 locationCallback,
                 Looper.getMainLooper()
             )
+//            viewmodel.refreshData(edt_city_name.text.toString())
         } else {
             val builder = AlertDialog.Builder(this)
             builder.setTitle("Need location service")
