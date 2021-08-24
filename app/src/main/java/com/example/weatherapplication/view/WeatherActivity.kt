@@ -2,6 +2,7 @@ package com.example.weatherapplication.view
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -96,22 +97,17 @@ class WeatherActivity : AppCompatActivity() {
                             currentLocation?.longitude!!,
                             1
                     )
-                    city = addressesRefresh[0].subAdminArea.toLowerCase().replace("kota", "").replace(
-                            "kabupaten",
-                            ""
-                    )
+                    println("addressesRefresh : ${addressesRefresh[0]}")
+
+                    city = addressesRefresh[0].subAdminArea.toLowerCase().trim().
+                    replace("\\s{2,}", " ")
+
                     lat = addressesRefresh[0].latitude
                     long = addressesRefresh[0].longitude
                     SET.putString("ADDRESS_RESULT_LAT", lat.toString())
                     SET.putString("ADDRESS_RESULT_LONG", long.toString())
                     SET.apply()
-                    println("city : $city")
-                    edt_city_name.setText(city)
-//                    viewmodel.refreshData(cName!!)
-                    val cityName = edt_city_name.text.toString()
-                    SET.putString("cityName", cityName)
-                    SET.apply()
-                    viewmodel.refreshData(cityName)
+                    viewmodel.refreshData(lat,long)
                 }
             }
             startLocationUpdates()
@@ -134,7 +130,7 @@ class WeatherActivity : AppCompatActivity() {
                 val cityName = edt_city_name.text.toString()
                 SET.putString("cityName", cityName)
                 SET.apply()
-                viewmodel.refreshData(cityName)
+                viewmodel.refreshDataSearch(cityName)
                 true
             } else false
         })
@@ -177,7 +173,7 @@ class WeatherActivity : AppCompatActivity() {
                 val cityName = edt_city_name.text.toString()
                 SET.putString("cityName", cityName)
                 SET.apply()
-                viewmodel.refreshData(cName!!)
+                viewmodel.refreshData(lat, long)
             }
         }
     }
@@ -186,29 +182,31 @@ class WeatherActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE) {
-            data.let {
-                var cName = GET.getString("cityName", "")?.toLowerCase()
-                val lat = (it?.getStringExtra("ADDRESS_RESULT_LAT") ?: "").toDouble()
-                val long = (it?.getStringExtra("ADDRESS_RESULT_LONG") ?: "").toDouble()
+            if(resultCode == Activity.RESULT_OK) {
+                data.let {
+                    var cName = GET.getString("cityName", "")?.toLowerCase()
+                    val lat = (it?.getStringExtra("ADDRESS_RESULT_LAT") ?: "").toDouble()
+                    val long = (it?.getStringExtra("ADDRESS_RESULT_LONG") ?: "").toDouble()
 
-                val geocoder = Geocoder(this@WeatherActivity, Locale.getDefault())
-                var addresses: List<Address>? = null
-                addresses = geocoder.getFromLocation(
-                    lat,
-                    long,
-                    1
-                )
+                    val geocoder = Geocoder(this@WeatherActivity, Locale.getDefault())
+                    var addresses: List<Address>? = null
+                    addresses = geocoder.getFromLocation(
+                        lat,
+                        long,
+                        1
+                    )
 
-                city = addresses[0].subAdminArea.toLowerCase().replace("kota", "").replace(
-                    "kabupaten",
-                    ""
-                )
-                println("city response $city")
-                edt_city_name.setText(city)
-                val cityName = edt_city_name.text.toString()
-                SET.putString("cityName", cityName)
-                SET.apply()
-                viewmodel.refreshData(cityName)
+                    city = addresses[0].subAdminArea.toLowerCase().replace("kota", "").replace(
+                        "kabupaten",
+                        ""
+                    )
+                    println("city response $city")
+                    edt_city_name.setText(city)
+                    val cityName = edt_city_name.text.toString()
+                    SET.putString("cityName", cityName)
+                    SET.apply()
+                    viewmodel.refreshData(lat, long)
+                }
             }
         }
     }
@@ -222,7 +220,9 @@ class WeatherActivity : AppCompatActivity() {
 
                 tv_city_code.text = data.sys.country.toString()
                 tv_city_name.text = data.name.toString()
-
+                edt_city_name.setText(data.name.toString())
+                SET.putString("cityName", data.name)
+                SET.apply()
                 Glide.with(this)
                     .load("https://openweathermap.org/img/wn/" + data.weather.get(0).icon + "@2x.png")
                     .into(img_weather_pictures)

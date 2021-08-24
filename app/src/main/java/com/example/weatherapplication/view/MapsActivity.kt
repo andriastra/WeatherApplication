@@ -56,6 +56,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         onSelectedMap()
     }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
+    }
+
     private fun onSelectedMap() {
         tv_finish.setOnClickListener {
             val returnIntent = Intent()
